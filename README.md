@@ -21,8 +21,27 @@ Supported Clipboard tools:
 
 Optional tools:
 
-- [Imagemagick (mogrify)](https://imagemagick.org/index.php) for optimizing screenshot before OCR
--[libnotify (notify-send)](https://gitlab.gnome.org/GNOME/libnotify) for status notifications
+- [Imagemagick (mogrify)](https://imagemagick.org/index.php) for optimizing the screenshot before OCR
+- [libnotify (notify-send)](https://gitlab.gnome.org/GNOME/libnotify) for status notifications
+
+## Installation
+
+Download the script to any location in `$PATH` and `chmod +x`
+
+With `curl`:
+
+```shell
+curl -L -o "$HOME/.local/bin/grab-text" https://raw.githubusercontent.com/benweidig/grab-text/main/grab-text
+chmod +x "$HOME/.local/bin/grab-text"
+```
+
+With `wget`:
+
+```shell
+wget -O "$HOME/.local/bin/grab-text" https://raw.githubusercontent.com/benweidig/grab-text/main/grab-text
+chmod +x "$HOME/.local/bin/grab-text"
+```
+
 
 ## License
 
