@@ -1,0 +1,195 @@
+#!/bin/sh
+
+# ##############################################################################
+# Grab Text: A Screenshot to Clipboard Shell Script
+#
+# This script triggers a screenshot tool to select an area and OCRs the
+# content to copy it to the clipboard.
+#
+# DEPENDENCIES:
+# - Tesseract OCR (https://github.com/tesseract-ocr/tesseract)
+# - Screenshot tool (supported: maim, scrot, gnome-screenshot)
+# - Clipboard tool (supported: xsel, xclip)
+#
+# OPTIONAL:
+# - Imagemagkick (https://imagemagick.org/index.php)
+# - nofity-send (libnotify-bin)
+#
+# CHANGE HISTORY:
+# - 2024-03-25: Initial release
+# ##############################################################################
+
+set -euf
+
+SCREENSHOT_BINS="maim scrot gnome-screenshot"
+CLIPBOARD_BINS="xsel xclip"
+
+# Tesseract language codes
+# See: https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions.html
+LANG_CODES="eng+deu"
+
+# -- Helper Functions ----------------------------------------------------------
+
+# Removed the working directory.
+# Used via shell trap
+# shellcheck disable=SC2317
+_gt_cleanup () {
+    if [ -z "${1}" ]; then
+        return
+    fi
+
+    if [ ! -d "${1}" ]; then
+        return
+    fi
+
+    rm -r -- "${1}"
+}
+
+# Find the first available from a list.
+# 
+# $1: Space-delimited string of suitable binaries.
+# $2: Category of binary, for error ouput.
+#
+# exits with 1 if no suitable binary was found.
+_gt_find_required_binary() {
+    BINS="$1"
+    CATEGORY="$2"
+
+    for BIN in ${BINS}; do
+        if command -v "$BIN" >/dev/null 2>&1; then
+            FOUND_BIN="${BIN}"
+            return
+        fi
+    done
+
+    >&2 printf "ERROR: No binary for category '%s' found. Compatible options: %s.\n" "${CATEGORY}" "${BINS}"
+    exit 1
+}
+
+# Tries to send a notification.
+# No-ops if notify-send isn't available.
+#
+# $1: Summary of the notification.
+# $2: Urgency of the notification
+_gt_notify () {
+    SUMMARY="$1"
+    URGENCY="${2:-"normal"}"
+    if command -v "notify-send" >/dev/null 2>&1; then
+        notify-send --urgency "${URGENCY}" --expire-time=3000 "Grab Text: ${SUMMARY}"
+    fi
+}
+
+
+# Helper for ensuring method calls succeed.
+#
+# $1: Summary for notification to be displayed.
+#
+# exits with 1
+_gt_die () {
+    _gt_notify "${1}" "critical"
+    exit 1
+}
+
+
+# -- The actual script ---------------------------------------------------------
+
+# STEP 1: DETECT SCREENSHOT BINARY
+
+FOUND_BIN=""
+_gt_find_required_binary "${SCREENSHOT_BINS}" "Screenshot"
+SCREENSHOT_BIN="${FOUND_BIN}"
+
+
+# STEP 2: DETECT CLIPBOARD BINARY
+
+FOUND_BIN=""
+_gt_find_required_binary "${CLIPBOARD_BINS}" "Clipboard"
+CLIPBOARD_BIN="${FOUND_BIN}"
+
+
+# STEP 3: CREATE WORKING DIRECTORY, UNIQUE NAME, AND CLEANUP TRAP
+
+WORKING_DIR=$(mktemp --directory)
+BASENAME=$(date +"%Y-%m-%d--%H-%M-%S")
+
+# shellcheck disable=SC2064
+trap "_gt_cleanup '${WORKING_DIR}'" EXIT INT TERM
+
+
+# STEP 4: TAKE SCREENSHOT
+
+case "${SCREENSHOT_BIN}" in
+    scrot)
+        scrot \
+            --select \
+            --freeze \
+            --quality 100 \
+            "${WORKING_DIR}/${BASENAME}.png"
+        ;;
+    
+    maim)
+        maim \
+            --select \
+            --nodrag \
+            --quality=10 \
+            "${WORKING_DIR}/${BASENAME}.png"
+        ;;
+
+    gnome-screenshot)
+        gnome-screenshot \
+            --area \
+            --file \
+            "${WORKING_DIR}/${BASENAME}.png"
+        ;;
+esac
+
+# shellcheck disable=SC2181
+if [ $? -ne 0 ]; then
+    _gt_die "ERROR: Taking screenshot with '${SCREENSHOT_BIN}' failed."
+fi
+
+
+# STEP 5 (OPTIONAL): IMPROVE SCREENSHOT FOR OCR
+
+if command -v mogrify >/dev/null 2>&1; then
+    mogrify \
+        -modulate 100,0 \
+        -resize 400% \
+        "${WORKING_DIR}/${BASENAME}.png" \
+    || _gt_die "ERROR: Modifying screenshot with 'mogrify' failed'."
+fi
+
+
+# STEP 6: TEXT RECOGNITION
+
+tesseract \
+    -l "${LANG_CODES}" \
+    "${WORKING_DIR}/${BASENAME}.png" \
+    "${WORKING_DIR}/${BASENAME}" \
+    >/dev/null 2>&1 \
+|| _gt_die "ERROR: OCR with 'tesseract' failed'."
+
+
+# STEP 7: COPY TEXT TO CLIPBOARD
+
+case "${CLIPBOARD_BIN}" in
+    xsel)
+        xsel -bi < "${WORKING_DIR}/${BASENAME}.txt"
+        ;;
+    
+    xclip)
+        xclip -selection clipboard -in < "${WORKING_DIR}/${BASENAME}.txt"
+        ;;
+esac
+
+# shellcheck disable=SC2181
+if [ $? -ne 0 ]; then
+    _gt_die "ERROR: Copying text to clipboard with '${CLIPBOARD_BIN}' failed."
+fi
+
+
+# STEP 8: SEND SUCCESS NOTIFICAITON AND EXIT
+
+_gt_notify "Text copied!"
+
+exit 0
