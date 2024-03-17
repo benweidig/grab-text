@@ -93,21 +93,20 @@ _gt_die () {
 
 # -- The actual script ---------------------------------------------------------
 
-# STEP 1: DETECT SCREENSHOT BINARY
+# STEP 1: ENSURE REQUIRED BINARIES
+
+_gt_find_required_binary "tesseract" "OCR"
 
 FOUND_BIN=""
 _gt_find_required_binary "${SCREENSHOT_BINS}" "Screenshot"
 SCREENSHOT_BIN="${FOUND_BIN}"
-
-
-# STEP 2: DETECT CLIPBOARD BINARY
 
 FOUND_BIN=""
 _gt_find_required_binary "${CLIPBOARD_BINS}" "Clipboard"
 CLIPBOARD_BIN="${FOUND_BIN}"
 
 
-# STEP 3: CREATE WORKING DIRECTORY, UNIQUE NAME, AND CLEANUP TRAP
+# STEP 2: CREATE WORKING DIRECTORY, UNIQUE NAME, AND CLEANUP TRAP
 
 WORKING_DIR=$(mktemp --directory)
 BASENAME=$(date +"%Y-%m-%d--%H-%M-%S")
@@ -116,7 +115,7 @@ BASENAME=$(date +"%Y-%m-%d--%H-%M-%S")
 trap "_gt_cleanup '${WORKING_DIR}'" EXIT INT TERM
 
 
-# STEP 4: TAKE SCREENSHOT
+# STEP 3: TAKE SCREENSHOT
 
 case "${SCREENSHOT_BIN}" in
     scrot)
@@ -149,7 +148,7 @@ if [ $? -ne 0 ]; then
 fi
 
 
-# STEP 5 (OPTIONAL): IMPROVE SCREENSHOT FOR OCR
+# STEP 4 (OPTIONAL): IMPROVE SCREENSHOT FOR OCR
 
 if command -v mogrify >/dev/null 2>&1; then
     mogrify \
@@ -160,7 +159,7 @@ if command -v mogrify >/dev/null 2>&1; then
 fi
 
 
-# STEP 6: TEXT RECOGNITION
+# STEP 5: TEXT RECOGNITION
 
 tesseract \
     -l "${LANG_CODES}" \
@@ -170,7 +169,7 @@ tesseract \
 || _gt_die "ERROR: OCR with 'tesseract' failed'."
 
 
-# STEP 7: COPY TEXT TO CLIPBOARD
+# STEP 6: COPY TEXT TO CLIPBOARD
 
 case "${CLIPBOARD_BIN}" in
     xsel)
@@ -188,7 +187,7 @@ if [ $? -ne 0 ]; then
 fi
 
 
-# STEP 8: SEND SUCCESS NOTIFICAITON AND EXIT
+# STEP 7: SEND SUCCESS NOTIFICAITON AND EXIT
 
 _gt_notify "Text copied!"
 
