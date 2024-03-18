@@ -62,8 +62,9 @@ _gt_find_required_binary() {
         fi
     done
 
-    >&2 printf "ERROR: No binary for category '%s' found. Compatible options: %s.\n" "${CATEGORY}" "${BINS}"
-    exit 1
+    ERROR_MSG=$(printf "ERROR: No binary for category '%s' found. Compatible options: %s.\n" "${CATEGORY}" "${BINS}")
+    >&2 echo "${ERROR_MSG}"
+    _gt_die "${ERROR_MSG}"
 }
 
 # Tries to send a notification.
