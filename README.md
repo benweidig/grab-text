@@ -13,6 +13,7 @@ Supported Screenshot tools:
 - [Make Image (maim)](https://github.com/naelstrof/maim)
 - [SCReenshOT (scrot)](https://github.com/resurrecting-open-source-projects/scrot)
 - [GNOME Screenshot (gnome-screenshot)](https://gitlab.gnome.org/GNOME/gnome-screenshot)
+- [Shutter (shutter)](https://shutter-project.org/)
 
 Supported Clipboard tools:
 

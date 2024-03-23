@@ -21,7 +21,7 @@
 
 set -euf
 
-SCREENSHOT_BINS="maim scrot gnome-screenshot"
+SCREENSHOT_BINS="maim scrot gnome-screenshot shutter"
 CLIPBOARD_BINS="xsel xclip"
 
 # Tesseract language codes
@@ -141,6 +141,12 @@ case "${SCREENSHOT_BIN}" in
             --file \
             "${WORKING_DIR}/${BASENAME}.png"
         ;;
+    shutter)
+    	shutter \
+    	-s \
+    	-e \
+    	-o "${WORKING_DIR}/${BASENAME}.png"
+    	;;
 esac
 
 # shellcheck disable=SC2181
