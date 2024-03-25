@@ -8,7 +8,7 @@
 #
 # DEPENDENCIES:
 # - Tesseract OCR (https://github.com/tesseract-ocr/tesseract)
-# - Screenshot tool (supported: maim, scrot, gnome-screenshot)
+# - Screenshot tool (supported: maim, scrot, gnome-screenshot, shutter)
 # - Clipboard tool (supported: xsel, xclip)
 #
 # OPTIONAL:
@@ -143,9 +143,9 @@ case "${SCREENSHOT_BIN}" in
         ;;
     shutter)
     	shutter \
-    	-s \
-    	-e \
-    	-o "${WORKING_DIR}/${BASENAME}.png"
+    	--select \
+    	--exit_after_capture \
+    	--output "${WORKING_DIR}/${BASENAME}.png"
     	;;
 esac
 
