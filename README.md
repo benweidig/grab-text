@@ -14,6 +14,7 @@ Supported Screenshot tools:
 - [SCReenshOT (scrot)](https://github.com/resurrecting-open-source-projects/scrot)
 - [GNOME Screenshot (gnome-screenshot)](https://gitlab.gnome.org/GNOME/gnome-screenshot)
 - [Shutter (shutter)](https://shutter-project.org/)
+- [XFCE4 screenshooter](https://docs.xfce.org/apps/screenshooter/start)
 
 Supported Clipboard tools:
 

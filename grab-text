@@ -21,7 +21,7 @@
 
 set -euf
 
-SCREENSHOT_BINS="maim scrot gnome-screenshot shutter"
+SCREENSHOT_BINS="maim scrot gnome-screenshot shutter xfce4-screenshooter"
 CLIPBOARD_BINS="xsel xclip"
 
 # Tesseract language codes
@@ -147,6 +147,11 @@ case "${SCREENSHOT_BIN}" in
     	--exit_after_capture \
     	--output "${WORKING_DIR}/${BASENAME}.png"
     	;;
+    xfce4-screenshooter)
+        xfce4-screenshooter \
+            --region \
+            --save "${WORKING_DIR}/${BASENAME}.png"
+        ;;
 esac
 
 # shellcheck disable=SC2181
