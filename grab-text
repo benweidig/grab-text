@@ -72,11 +72,19 @@ _gt_find_required_binary() {
 #
 # $1: Summary of the notification.
 # $2: Urgency of the notification
+# $3: Optional body text of the notification.
 _gt_notify () {
     SUMMARY="$1"
     URGENCY="${2:-"normal"}"
+    BODY="${3:-}"
     if command -v "notify-send" >/dev/null 2>&1; then
-        notify-send --urgency "${URGENCY}" --expire-time=5000 "Grab Text: ${SUMMARY}"
+	# Use the positional parameters ($@) for the optional BODY
+        if [ -n "${BODY}" ]; then
+            set -- "${BODY}"
+        else
+            set --
+        fi
+        notify-send --urgency "${URGENCY}" --expire-time=5000 "Grab Text: ${SUMMARY}" "$@"
     fi
 }
 
@@ -201,9 +209,25 @@ fi
 
 # STEP 7: SEND SUCCESS NOTIFICAITON AND EXIT
 
-_gt_notify "Text copied:
-$(cat "${WORKING_DIR}/${BASENAME}.txt")"
+TEXT_FILE="${WORKING_DIR}/${BASENAME}.txt"
+RAW_TEXT=$(cat "${TEXT_FILE}")
 
-cat "${WORKING_DIR}/${BASENAME}.txt"
+# Send a notification with a shortened preview of the text
+if [ -n "${RAW_TEXT}" ]; then
+    # Strip newlines, condense spaces, and cut to the first 80 chars
+    SHORT_TEXT=$(echo "${RAW_TEXT}" | tr '\n' ' ' | sed 's/  */ /g' | cut -c 1-80)
+    
+    # Append ellipsis if it exceeds 80 characters
+    if [ "${#RAW_TEXT}" -gt 80 ]; then
+        SHORT_TEXT="${SHORT_TEXT}..."
+    fi
+    
+    _gt_notify "Text copied!" "normal" "${SHORT_TEXT}"
+else
+    _gt_notify "No text found!" "normal"
+fi
+
+# Print the unmodified output to standard output so it can be piped elsewhere
+cat "${TEXT_FILE}"
 
 exit 0
