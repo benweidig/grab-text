@@ -76,7 +76,7 @@ _gt_notify () {
     SUMMARY="$1"
     URGENCY="${2:-"normal"}"
     if command -v "notify-send" >/dev/null 2>&1; then
-        notify-send --urgency "${URGENCY}" --expire-time=3000 "Grab Text: ${SUMMARY}"
+        notify-send --urgency "${URGENCY}" --expire-time=5000 "Grab Text: ${SUMMARY}"
     fi
 }
 
@@ -201,6 +201,9 @@ fi
 
 # STEP 7: SEND SUCCESS NOTIFICAITON AND EXIT
 
-_gt_notify "Text copied!"
+_gt_notify "Text copied:
+$(cat "${WORKING_DIR}/${BASENAME}.txt")"
+
+cat "${WORKING_DIR}/${BASENAME}.txt"
 
 exit 0
