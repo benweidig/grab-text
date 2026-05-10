@@ -32,7 +32,7 @@ LANG_CODES="eng+deu"
 
 # Removed the working directory.
 # Used via shell trap
-# shellcheck disable=SC2317
+# shellcheck disable=SC2329
 _gt_cleanup () {
     if [ -z "${1}" ]; then
         return
